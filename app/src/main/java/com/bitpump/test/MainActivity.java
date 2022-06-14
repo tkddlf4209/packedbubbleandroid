@@ -58,7 +58,42 @@ import static android.content.ContentValues.TAG;
 public class MainActivity extends AppCompatActivity {
 
     HIChartView chartView;
-   //long last_update_time;
+    HashMap<String, ThemeInfo> themeMap;
+    public static final String[] colors = new String[]{
+            "e51c23",
+            "e91e63",
+            "9c27b0",
+            "673ab7",
+            "3f51b5",
+            "5677fc",
+            "03a9f4",
+            "00bcd4",
+            "009688",
+            "259b24",
+            "8bc34a",
+            "afb42b",
+            "ff9800",
+            "ff5722",
+            "795548",
+            "d64840",
+            "d68140",
+            "d6c540",
+            "9dd640",
+            "48d640",
+            "40d675",
+            "40d6a6",
+            "40c9d6",
+            "40a9d6",
+            "407ad6",
+            "404dd6",
+            "5940d6",
+            "7440d6",
+            "8e40d6",
+            "b340d6",
+            "cf40d6",
+            "d640b6"
+    };
+
 
     public class LimitedQueue<E> extends LinkedList<E> {
 
@@ -85,14 +120,14 @@ public class MainActivity extends AppCompatActivity {
 
         chartView = findViewById(R.id.hc);
         chartView.theme = "dark-unica"; //dark-unica,brand-dark sand-signika.scss
-
+        themeMap = makeColorSymbolMap();
 
         HIOptions options = new HIOptions();
 
         HIChart chart = new HIChart();
         chart.setType("packedbubble");
 
-        //chart.setHeight("100%");
+        chart.setHeight("100%");
         options.setChart(chart);
 
         HITitle title = new HITitle();
@@ -113,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
                 "'<img src=\"https://static.upbit.com/logos/'+this.point.name+'.png\" style=\"height:10px;width:10px;margin-right:2px\"><b>'+this.point.name+'</b>" +
                 "</br>현재가 : <b style=\"font-size:x-small\" >'+this.point.options.custom.c+'</b>" +
                 "</br>전일대비 : <b style=\"color:'+(this.point.options.custom.p>0?'#ff504d':'#b2deec')+';font-size:x-small\">'+(this.point.options.custom.p).toFixed(2)+'%</b>" + // 네온 블루, 레드
-                "</br>변동률(1m) : <b style=\"color:'+(this.point.options.custom.c_p>0.8?'#FF8C00':'#FFFFFF')+';font-size:x-small\">±'+(this.point.options.custom.c_p.toFixed(2))+'%</b>" +
+                "</br>변동률(1m) : <b style=\"color:'+(this.point.options.custom.c_p==0.0?'#FFFFFF':'#FF8C00')+';font-size:x-small\">±'+(this.point.options.custom.c_p.toFixed(2))+'%</b>" +
                 "</br>거래대금(1m) : <b style=\"color:#ff504d;font-size:x-small\">'+(this.y/100000000).toFixed(1)+'억</b>" +
                 "</br>거래대금(24h) : <b style=\"font-size:x-small\">'+(this.point.options.custom.q/100000000).toFixed(0)+'억</b>'" +
                 ";}"));
@@ -136,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
 
         /** 레이아웃 알고리즘 설정 **/
         HILayoutAlgorithm layoutAlgorithm = new HILayoutAlgorithm();
-        layoutAlgorithm.setBubblePadding(3);
+        layoutAlgorithm.setBubblePadding(5);
         //layoutAlgorithm.setEnableSimulation(false); // 애니메이션 효과 끄기
         layoutAlgorithm.setInitialPositions("random"); //"circle", "random"
         layoutAlgorithm.setInitialPositionRadius(10); //Defaults to 20.
@@ -149,15 +184,14 @@ public class MainActivity extends AppCompatActivity {
         plotoptions.getPackedbubble().getPoint().setEvents(new HIEvents());
         plotoptions.getPackedbubble().getPoint().getEvents().setClick(new HIFunction(
                 f -> {
-                    String symbol = (String)f.getProperty("name");
-                    Toast.makeText(MainActivity.this,symbol+" Click!!",Toast.LENGTH_SHORT).show();
+                    String symbol = (String) f.getProperty("name");
+                    Toast.makeText(MainActivity.this, symbol + " Click!!", Toast.LENGTH_SHORT).show();
 
 //                    tooltip.setEnabled(!tooltip.getEnabled());
 //                    chartView.setOptions(options);
                 },
                 new String[]{"name"}
         ));
-
 
 
         HIDataLabels dataLabels = new HIDataLabels();
@@ -168,14 +202,26 @@ public class MainActivity extends AppCompatActivity {
 ///<img src="https://static.upbit.com/logos/BTC.png" style="height:10px;width:10px;margin:0px;background:red">
         /** 라벨명 포멧 설정 **/
         //dataLabels.setFormat("{point.name}"); // point.name , point.y /// point.options.custom.value
-        dataLabels.setFormatter(new HIFunction("function() { if (this.y >= 100000000) { return '<p style=\"font-size:x-small;font-weight:600\">'+this.point.name+'</p></br><p style=\"color:'+(this.point.options.custom.p>0?'#ff504d':'#b2deec')+';font-size:xx-small;font-weight:600;'+(this.point.options.custom.c_p>1.0?'text-decoration: underline;':'')+'\">'+(Math.abs(this.point.options.custom.p).toFixed(2))+'%</p><br/><p style=\"color:#ff6461;font-size:x-small;\">'+(this.y/100000000).toFixed(1)+'억</p>'; }else{ return '<p style=\"font-size:x-small\">'+this.point.name+'</p>' } }"));
+        dataLabels.setFormatter(new HIFunction(
+                "function() { if (this.y >= 50000000) { " +
+                        "return '" +
+                        "<p style=\"font-size:x-small;font-weight:600\">'+this.point.name+'</p><br/>" +
+                        "<p style=\"color:#ff6461;'+(this.y <100000000?'font-size:xx-small;':'font-size:x-small')+'\">'+(this.y/100000000).toFixed(1)+'억</p>'" +
+                        "+(this.point.options.custom.c_p>0.8?" +
+                        "'<br/><p style=\"font-size:x-small;text-decoration:underline;color:'+(this.point.options.custom.p>0?'#ff504d':'#b2deec')+'\">'+(Math.abs(this.point.options.custom.p).toFixed(2))+'%</p>'" +
+                        ":" +
+                        "'<br/><p style=\"font-size:xx-small;color:'+(this.point.options.custom.p>0?'#ff504d':'#b2deec')+'\">'+(Math.abs(this.point.options.custom.p).toFixed(2))+'%</p>'); " +
+                        "}else{ " +
+                        "return " +
+                        "'<p style=\"font-size:x-small\">'+this.point.name+'</p>' } }"
+        ));
         //dataLabels.setFormat("{point.name}<br><p style=\"color:red\">{point.options.custom.value}</p>"); // point.name , point.y /// point.options.custom.value
 
         /** 라벨명을 표시할 조건 설정**/
         dataLabels.setFilter(new HIFilter());
         dataLabels.getFilter().setProperty("y"); //y value, percentage and others listed under
         dataLabels.getFilter().setOperator(">"); //>, <, >=, <=, ==, and ===.
-        dataLabels.getFilter().setValue(10000000);
+        dataLabels.getFilter().setValue(20000000);
 
         /** 라벨명을 스타일 설정**/
         dataLabels.setStyle(new HIStyle());
@@ -192,15 +238,15 @@ public class MainActivity extends AppCompatActivity {
         dataLabelsList.add(dataLabels);
 
         plotoptions.getPackedbubble().setDataLabels(dataLabelsList);
-        plotoptions.getPackedbubble().setMinSize(5.0f);
-        plotoptions.getPackedbubble().setMaxSize(95.0f);
+        plotoptions.getPackedbubble().setMinSize(3.0f);
+        plotoptions.getPackedbubble().setMaxSize(90.0f);
 
         options.setPlotOptions(plotoptions);
 
         ArrayList series = new ArrayList<>();
 
-        String[] markets = new String[]{"KRW","BTC"};
-        for(String market : markets){
+        String[] markets = new String[]{"KRW", "BTC"};
+        for (String market : markets) {
             HIPackedbubble krw_bubble = new HIPackedbubble();
             krw_bubble.setName(market);
             krw_bubble.setData(new ArrayList());
@@ -317,7 +363,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                                     // 24h 거래량이 리셋되었을 경우 Queue를 초기화한다.
-                                    if((double)map.get(symbol).queue_q.getLast().value > q + 1000000000){ // BTC마켓의 경우 비트코인 가격에 따라 오차가 있으므로 보정값으로 10억을 주었다.
+                                    if ((double) map.get(symbol).queue_q.getLast().value > q + 1000000000) { // BTC마켓의 경우 비트코인 가격에 따라 오차가 있으므로 보정값으로 10억을 주었다.
                                         map.get(symbol).queue_q.clear();
                                         map.get(symbol).queue_p.clear();
                                     }
@@ -349,7 +395,7 @@ public class MainActivity extends AppCompatActivity {
                                 hiData.setValue(volume1min);
                                 hiData.setId(symbol);
                                 hiData.setCustom(makeCustom(info));
-                                hiData.setColor(HIColor.initWithHexValue(colorFromText(symbol)));
+                                hiData.setColor(HIColor.initWithHexValue(colorFromText(BUBBLE_COLOR_DEFAULT, symbol)));
                                 new_data.get(info.t).add(hiData);
                             }
                         }
@@ -361,7 +407,6 @@ public class MainActivity extends AppCompatActivity {
                             bubbleMap.get(t).update(bubbleMap.get(t));
                         }
                     }
-
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -377,47 +422,83 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    public static final int BUBBLE_COLOR_DEFAULT = 0;
+    public static final int BUBBLE_COLOR_THEME = 1;
 
-    public static String colorFromText(String text) {
 
-        String[] colors = {
-                "e51c23",
-                "e91e63",
-                "9c27b0",
-                "673ab7",
-                "3f51b5",
-                "5677fc",
-                "03a9f4",
-                "00bcd4",
-                "009688",
-                "259b24",
-                "8bc34a",
-                "afb42b",
-                "ff9800",
-                "ff5722",
-                "795548",
-                "d64840",
-                "d68140",
-                "d6c540",
-                "9dd640",
-                "48d640",
-                "40d675",
-                "40d6a6",
-                "40c9d6",
-                "40a9d6",
-                "407ad6",
-                "404dd6",
-                "5940d6",
-                "7440d6",
-                "8e40d6",
-                "b340d6",
-                "cf40d6",
-                "d640b6"
-        };
+    public class ThemeInfo {
+        String tag;
+        String hexColor;
+
+        public ThemeInfo(String tag) {
+            this.tag = tag;
+            this.hexColor = getColorHexFromString(tag);
+
+            Log.e(TAG, "ThemeInfo: " + hexColor);
+        }
+
+        public String getColorHexFromString(String symbol) {
+
+            int hash = 0;
+            for (int i = 0; i < symbol.length(); i++) {
+                hash = symbol.charAt(i) + ((hash << 5) - hash);
+            }
+            String colour = "";
+            for (int i = 0; i < 3; i++) {
+                int value = (hash >> (i * 8)) & 0xFF;
+                colour += String.format("%02X", value);
+            }
+            return colour;
+        }
+    }
+
+    public HashMap<String, ThemeInfo> makeColorSymbolMap() {
+        HashMap<String, ThemeInfo> result = new HashMap<>();
+
+        ThemeInfo t1 = new ThemeInfo("비트코인");
+        result.put("BTC", t1);
+        result.put("BCH", t1);
+        result.put("BTG", t1);
+        result.put("BSV", t1);
+
+
+        ThemeInfo t2 = new ThemeInfo("플랫폼");
+        result.put("XRP", t2);
+        result.put("ETH", t2);
+        result.put("BTG", t2);
+        result.put("BSV", t2);
+
+        ThemeInfo t3 = new ThemeInfo("NFT");
+        result.put("MANA", t3);
+        result.put("SAND", t3);
+        result.put("BORA", t3);
+        result.put("AXS", t3);
+        result.put("FLOW", t3);
+        result.put("CHZ", t3);
+        result.put("THETA", t3);
+        result.put("ENJ", t3);
+        result.put("WAXP", t3);
+        result.put("AQT", t3);
+        result.put("KLAY", t3);
+
+        ThemeInfo themeDefault = new ThemeInfo("");
+        result.put("DEFAULT", themeDefault);
+
+        return result;
+    }
+
+
+    public String colorFromText(int opt, String symbol) {
+
+        if (opt == BUBBLE_COLOR_THEME) {
+            if (themeMap.get(symbol) != null) {
+                return themeMap.get(symbol).hexColor;
+            }
+        }
 
         int hash = 0;
-        for (int i = 0; i < text.length(); i++) {
-            hash = text.charAt(i) + ((hash << 5) - hash);
+        for (int i = 0; i < symbol.length(); i++) {
+            hash = symbol.charAt(i) + ((hash << 5) - hash);
             hash = hash & hash;
         }
         hash = ((hash % colors.length) + colors.length) % colors.length;
@@ -439,10 +520,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public double gapValueDouble(LimitedQueue<InfoValue> queue) {
-        double min = (double)queue.getLast().value;
-        double max = (double)queue.getLast().value;
+        double min = (double) queue.getLast().value;
+        double max = (double) queue.getLast().value;
         for (InfoValue value : queue) {
-            if( System.currentTimeMillis() -value.timestamp < 60000){
+            if (System.currentTimeMillis() - value.timestamp < 60000) {
                 min = Math.min(min, (double) value.value);
                 max = Math.max(max, (double) value.value);
             }
