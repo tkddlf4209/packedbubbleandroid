@@ -112,10 +112,10 @@ public class MainActivity extends AppCompatActivity {
         tooltip.setFormatter(new HIFunction("function(){ return " +
                 "'<img src=\"https://static.upbit.com/logos/'+this.point.name+'.png\" style=\"height:10px;width:10px;margin-right:2px\"><b>'+this.point.name+'</b>" +
                 "</br>현재가 : <b style=\"font-size:x-small\" >'+this.point.options.custom.c+'</b>" +
-                "</br>전일대비 : <b style=\"color:'+(this.point.options.custom.p>0?'#FD1C03':'#1589FF')+';font-size:x-small\">'+(this.point.options.custom.p).toFixed(2)+'%</b>" + // 네온 블루, 레드
-                "</br>거래대금(24h) : <b style=\"font-size:x-small\">'+(this.point.options.custom.q/100000000).toFixed(0)+'억</b>" +
-                "</br>거래대금(1m) : <b style=\"color:#FD1C03;font-size:x-small\">'+(this.y/100000000).toFixed(1)+'억</b>" +
-                "</br>변동률(1m) : <b style=\"color:'+(this.point.options.custom.c_p>0.8?'#FD1C03':'#FFFFFF')+';font-size:x-small\">±'+(this.point.options.custom.c_p.toFixed(2))+'%</b>'" +
+                "</br>전일대비 : <b style=\"color:'+(this.point.options.custom.p>0?'#ff504d':'#b2deec')+';font-size:x-small\">'+(this.point.options.custom.p).toFixed(2)+'%</b>" + // 네온 블루, 레드
+                "</br>변동률(1m) : <b style=\"color:'+(this.point.options.custom.c_p>0.8?'#FF8C00':'#FFFFFF')+';font-size:x-small\">±'+(this.point.options.custom.c_p.toFixed(2))+'%</b>" +
+                "</br>거래대금(1m) : <b style=\"color:#ff504d;font-size:x-small\">'+(this.y/100000000).toFixed(1)+'억</b>" +
+                "</br>거래대금(24h) : <b style=\"font-size:x-small\">'+(this.point.options.custom.q/100000000).toFixed(0)+'억</b>'" +
                 ";}"));
 
 //        font-size: xx-small;
@@ -315,7 +315,9 @@ public class MainActivity extends AppCompatActivity {
                                     map.put(symbol, info);
                                 } else {
 
-                                    if((double)map.get(symbol).queue_q.getLast().value > q){
+
+                                    // 24h 거래량이 리셋되었을 경우 Queue를 초기화한다.
+                                    if((double)map.get(symbol).queue_q.getLast().value > q + 1000000000){ // BTC마켓의 경우 비트코인 가격에 따라 오차가 있으므로 보정값으로 10억을 주었다.
                                         map.get(symbol).queue_q.clear();
                                         map.get(symbol).queue_p.clear();
                                     }
